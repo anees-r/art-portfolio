@@ -1,0 +1,42 @@
+# -----------------------------------------------------------------------------
+# DEV ONLY — a throwaway stand-in for Nezden, so the site runs without Nezden.
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#
+# * postgres  : port 5433, loaded with dev/fixture.sql (same names/columns as
+#               Nezden's art_site_* views). Not Nezden's database.
+# * media     : port 8090, serves dev/media at http://localhost:8090/media
+#               (stands in for https://nezden.com/media).
+#
+# If you run Nezden locally instead, don't start this; point
+# NEZDEN_DATABASE_URL / NEZDEN_MEDIA_BASE at Nezden.
+# Reset the sample data with: docker compose -f docker-compose.dev.yml down -v
+# -----------------------------------------------------------------------------
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: nezden
+      POSTGRES_PASSWORD: nezden
+      POSTGRES_DB: nezden
+    ports:
+      - "5433:5432"
+    volumes:
+      - nezden-fixture-data:/var/lib/postgresql/data
+      - ./dev/fixture.sql:/docker-entrypoint-initdb.d/01-fixture.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nezden -d nezden"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  media:
+    image: nginx:alpine
+    ports:
+      - "8090:80"
+    volumes:
+      - ./dev/media:/usr/share/nginx/html/media:ro
+      - ./dev/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  nezden-fixture-data:
