@@ -274,6 +274,13 @@ footer.foot a{text-decoration:none;transition:color .8s var(--ease)}footer.foot 
 .v-close{position:fixed;top:24px;right:var(--gutter);z-index:3;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--moon);display:flex;align-items:center;gap:12px;text-decoration:none}
 .v-count{position:fixed;top:26px;left:var(--gutter);z-index:3;font-size:11px;letter-spacing:.24em;color:var(--mist)}
 #viewer .v-close,#viewer .v-count{opacity:0}
+/* magnifier: a toggle beside Close, and the lens that follows the cursor */
+.v-zoom{position:fixed;top:14px;right:calc(var(--gutter) + 104px);z-index:3;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--hairline);background:rgba(7,4,15,.45);color:var(--mist);transition:color .6s var(--ease),border-color .6s var(--ease),background .6s var(--ease),box-shadow .6s var(--ease);animation:vzin 1.2s var(--ease) 1s both}
+.v-zoom svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+.v-zoom:hover{color:var(--lavender);border-color:var(--hairline-strong)}
+.v-zoom.on{color:var(--moon);background:var(--violet-800);border-color:var(--lavender);box-shadow:0 0 24px rgba(138,111,224,.45)}
+@keyframes vzin{from{opacity:0}}
+.v-lens{position:fixed;left:0;top:0;z-index:150;width:220px;height:220px;border-radius:50%;pointer-events:none;opacity:0;transition:opacity .25s;background-color:var(--void);background-repeat:no-repeat;border:1px solid var(--hairline-strong);box-shadow:0 0 0 6px rgba(7,4,15,.35),0 24px 70px rgba(7,4,15,.7),0 0 60px rgba(138,111,224,.3);will-change:transform}
 @media (max-width:860px){.v-grid{grid-template-columns:minmax(0,1fr);align-items:start}.v-stage .art{max-height:62svh}.v-stage .sized,.v-stage .ph{width:min(100%,calc(62svh * var(--ar)))}}
 
 /* standalone artwork page */

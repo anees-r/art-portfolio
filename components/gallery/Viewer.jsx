@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
 import ArtVisual from '@/components/ArtVisual';
 import ArtworkMeta from './ArtworkMeta';
+import Magnifier from './Magnifier';
 import { pad2, viewerTone } from './format';
 import { useSmooth } from '@/components/motion/SmoothScroll';
 import { gsap, prefersReducedMotion } from '@/lib/motion';
@@ -266,6 +267,7 @@ export default function Viewer({ ref, artworks, tones, siteName }) {
       sy = e.touches[0].clientY;
     };
     const end = (e) => {
+      if (stage.current?.dataset.zoom === 'on') return; // dragging the magnifier, not swiping
       const dx = e.changedTouches[0].clientX - sx;
       const dy = e.changedTouches[0].clientY - sy;
       if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.2) step(dx < 0 ? 1 : -1);
@@ -323,6 +325,7 @@ export default function Viewer({ ref, artworks, tones, siteName }) {
               sizes="(max-width: 860px) 100vw, 62vw"
             />
           )}
+          {view.open && art && <Magnifier art={art} />}
         </div>
         <aside className="v-meta" ref={meta}>
           {view.open && art && (

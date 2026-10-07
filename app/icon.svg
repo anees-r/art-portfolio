@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8a6fe0"/>
+      <stop offset=".55" stop-color="#5b3bb5"/>
+      <stop offset="1" stop-color="#2a1a5c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".65" cy=".3" r=".55">
+      <stop offset="0" stop-color="#efeaff" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#efeaff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#tile)"/>
+  <rect width="64" height="64" rx="15" fill="url(#glow)"/>
+  <!-- the stroke the brush has just painted -->
+  <path d="M9 52c5-5 10-6 15-3s9 4 14 1 9-3 14-1" fill="none" stroke="#0d0820" stroke-width="4.5" stroke-linecap="round" opacity=".85"/>
+  <!-- the brush, drawn upright then tilted: handle, ferrule, bristles -->
+  <g transform="rotate(42 32 30)">
+    <rect x="29" y="2" width="6" height="27" rx="3" fill="#efeaff"/>
+    <rect x="27.5" y="28" width="9" height="8" rx="1.5" fill="#d6cbf7"/>
+    <path d="M27.5 31.5h9" stroke="#8a6fe0" stroke-width="1.2"/>
+    <path d="M27.5 36h9c0 7-1.8 12-4.5 16.5C29.3 48 27.5 43 27.5 36z" fill="#0d0820"/>
+  </g>
+</svg>

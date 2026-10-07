@@ -3,6 +3,7 @@ import { notFound, unstable_rethrow } from 'next/navigation';
 import { getArtworkBySlug, getProfile, getCollections } from '@/lib/nezden/queries';
 import { siteOrigin, excerpt } from '@/lib/site';
 import ArtVisual from '@/components/ArtVisual';
+import Magnifier from '@/components/gallery/Magnifier';
 import ArtworkMeta from '@/components/gallery/ArtworkMeta';
 import DetailMotion from '@/components/gallery/DetailMotion';
 import { pad2, viewerTone } from '@/components/gallery/format';
@@ -78,6 +79,7 @@ export default async function WorkPage({ params }) {
       <div className="v-grid">
         <div className="v-stage">
           <ArtVisual art={a} priority quality={85} sizes="(max-width: 860px) 100vw, 62vw" />
+          <Magnifier art={a} />
         </div>
         <aside className="v-meta">
           <ArtworkMeta
