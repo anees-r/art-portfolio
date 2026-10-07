@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import Lenis from 'lenis';
 import { gsap, ScrollTrigger, prefersReducedMotion, requestRefresh } from '@/lib/motion';
 
@@ -55,6 +56,30 @@ export default function SmoothScroll({ children }) {
       lenisRef.current = null;
     };
   }, []);
+
+  // Lenis keeps its own scroll position across client-side navigations, so a new
+  // page could open at the old one's depth. Start each new page at the top —
+  // except for "#section" links (the page lands those itself) and back/forward.
+  const pathname = usePathname();
+  const popped = useRef(false);
+  const firstPath = useRef(true);
+  useEffect(() => {
+    const onPop = () => (popped.current = true);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+  useEffect(() => {
+    if (firstPath.current) {
+      firstPath.current = false;
+      return;
+    }
+    const wasPop = popped.current;
+    popped.current = false;
+    if (wasPop || location.hash) return;
+    lenisRef.current?.scrollTo(0, { immediate: true, force: true });
+    window.scrollTo(0, 0);
+    requestRefresh(0);
+  }, [pathname]);
 
   const lock = useCallback((on) => {
     locks.current = Math.max(0, locks.current + (on ? 1 : -1));

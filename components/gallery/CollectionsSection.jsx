@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment, useEffect, useId, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import ArtVisual from '@/components/ArtVisual';
 import { useGallery } from './GalleryProvider';
 import { ScrollTrigger, prefersReducedMotion } from '@/lib/motion';
@@ -10,11 +11,12 @@ const rangeLine = (c) => [c.range, works(c.count)].filter(Boolean).join(' · ');
 
 /**
  * "Collections": a pinned journey where a lit path travels node to node as you
- * scroll (each collection's tone washing the room), followed by arched doors
- * that re-hang the corridor with that collection.
+ * scroll (each collection's tone washing the room). Hovering a node lifts its
+ * cover and brings that collection's details into the panel below; clicking
+ * hangs that collection in "Work" above (its own page stays a real link, for
+ * new tabs and no-JS).
  */
 export default function CollectionsSection({ collections }) {
-  const { requestFilter } = useGallery();
   const n = collections.length;
   const clipId = useId().replace(/:/g, '');
   const journey = useRef(null);
@@ -25,6 +27,8 @@ export default function CollectionsSection({ collections }) {
   const cur = useRef(-1);
   const [info, setInfo] = useState(0);
   const [swap, setSwap] = useState(false);
+  const [hover, setHover] = useState(null);
+  const { requestFilter } = useGallery();
 
   // Path geometry, exactly as the prototype computes it (viewBox 1000×200).
   const { pts, d } = useMemo(() => {
@@ -88,13 +92,16 @@ export default function CollectionsSection({ collections }) {
   }, [collections, n]);
 
   if (!n) return null;
-  const shown = collections[info];
+  const shownIdx = hover ?? info;
 
-  const goDoor = (c) => (e) => {
+  // A plain click re-hangs the corridor with this collection and glides up to it.
+  const pick = (c) => (e) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
+    setHover(null);
     requestFilter(c.id, { scroll: true });
   };
+  const shown = collections[shownIdx];
 
   return (
     <section id="collections">
@@ -111,8 +118,8 @@ export default function CollectionsSection({ collections }) {
               ))}
             </div>
           </div>
-          <div className="track" aria-hidden="true">
-            <svg viewBox="0 0 1000 200" preserveAspectRatio="none">
+          <div className="track">
+            <svg viewBox="0 0 1000 200" preserveAspectRatio="none" aria-hidden="true">
               <defs>
                 <clipPath id={clipId}>
                   <rect ref={rect} x="0" y="-100" width="70" height="400" />
@@ -122,58 +129,47 @@ export default function CollectionsSection({ collections }) {
               <path className="lit" d={d} clipPath={`url(#${clipId})`} />
             </svg>
             {collections.map((c, i) => (
-              <span
+              <Link
                 key={c.id}
-                className="node"
+                href={`/collections/${c.slug}`}
+                className={`node${n > 1 && i === 0 ? ' al' : ''}${n > 1 && i === n - 1 ? ' ar' : ''}`}
                 ref={(el) => (nodes.current[i] = el)}
                 style={{ left: `${pts[i][0] / 10}%`, top: `${pts[i][1] / 2}%` }}
+                data-view
+                onMouseEnter={() => setHover(i)}
+                onMouseLeave={() => setHover(null)}
+                onFocus={() => setHover(i)}
+                onBlur={() => setHover(null)}
+                onClick={pick(c)}
               >
                 {c.cover && <ArtVisual art={c.cover} variant="tile" decorative sizes="120px" />}
                 <b>{c.title}</b>
-              </span>
+              </Link>
             ))}
           </div>
           <div className={`jinfo${swap ? ' swap' : ''}`} aria-live="polite">
             {shown && (
-              <>
+              // Keyed so each change (scroll or hover) fades the new details in.
+              <div className="jbody" key={shownIdx}>
                 <span className="label">{rangeLine(shown)}</span>
                 <h3>{shown.title}</h3>
                 {shown.description && <p>{shown.description}</p>}
-              </>
+                <Link className="jgo" href={`/collections/${shown.slug}`} tabIndex={-1} onClick={pick(shown)}>
+                  Open collection <span aria-hidden="true">→</span>
+                </Link>
+              </div>
             )}
           </div>
           <div className="mobile-j">
             {collections.map((c) => (
-              <article key={c.id} className="rv">
+              <Link key={c.id} href={`/collections/${c.slug}`} className="rv" onClick={pick(c)}>
                 {c.cover && <ArtVisual art={c.cover} variant="tile" decorative sizes="140px" />}
-                <span className="label">{c.range || ''}</span>
+                <span className="label">{rangeLine(c)}</span>
                 <h3>{c.title}</h3>
                 {c.description && <p>{c.description}</p>}
-              </article>
+              </Link>
             ))}
           </div>
-        </div>
-      </div>
-      <div className="wrap">
-        <div className="doors">
-          {collections.map((c) => (
-            <a key={c.id} className="door" href={`/collections/${c.slug}`} data-view onClick={goDoor(c)}>
-              <div className={`arch${c.cover ? '' : ' nocover'}`}>
-                {c.cover ? (
-                  <ArtVisual art={c.cover} variant="tile" decorative sizes="(max-width: 560px) 92vw, 300px" />
-                ) : (
-                  'Coming soon'
-                )}
-              </div>
-              <div>
-                <h3>{c.title}</h3>
-                {c.description && <p>{c.description}</p>}
-                <p className="label" style={{ marginTop: 8 }}>
-                  {rangeLine(c)}
-                </p>
-              </div>
-            </a>
-          ))}
         </div>
       </div>
     </section>

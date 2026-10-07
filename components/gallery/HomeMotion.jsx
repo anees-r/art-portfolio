@@ -2,12 +2,12 @@
 
 import { useEffect } from 'react';
 import { useSmooth } from '@/components/motion/SmoothScroll';
-import { gsap, ScrollTrigger, prefersReducedMotion, isMobile } from '@/lib/motion';
+import { gsap, ScrollTrigger, prefersReducedMotion } from '@/lib/motion';
 
 /**
  * Scroll choreography for the home page (from the prototype's buildAnim):
- * the hero piece grows out of the dark as you "enter", the statement lights
- * line by line, and the process line fills step by step.
+ * the hero copy lifts away as you "enter", the statement lights
+ * line by line. The thread through the page lives in Threads.
  */
 export default function HomeMotion() {
   const smooth = useSmooth();
@@ -18,48 +18,43 @@ export default function HomeMotion() {
     let ctx;
     if (!reduced) {
       ctx = gsap.context(() => {
-        const art = document.querySelector('#heroArt');
-        if (art) {
-          gsap.set(art, { x: 0, y: 0, xPercent: -50, yPercent: -50, scale: 0.36, opacity: 0.4, filter: 'blur(2px)' });
+        // The scroll fade uses explicit start values, and the entrance animates the
+        // copy's children rather than the copy itself: if both drove the same
+        // element, a scroll during the entrance (or landing part-way down) could
+        // record a half-faded start, leaving the hero empty when you scroll back up.
+        if (document.querySelector('.hero-track')) {
           gsap
             .timeline({
               scrollTrigger: { trigger: '.hero-track', start: 'top top', end: 'bottom bottom', scrub: 1.4, invalidateOnRefresh: true },
             })
-            .to(art, { scale: () => (isMobile() ? 0.9 : 1), filter: 'blur(0px)', ease: 'none', duration: 1 }, 0)
-            .to(art, { opacity: 1, ease: 'none', duration: 0.5 }, 0)
-            .to('.hero-copy', { opacity: 0, y: -90, scale: 1.04, ease: 'none', duration: 0.45 }, 0.04)
-            .to('.scrollcue', { opacity: 0, duration: 0.08 }, 0)
-            .to('.hero-door', { opacity: 0, duration: 0.3 }, 0.3)
-            .to(art, { opacity: 0, duration: 0.14 }, 0.9);
+            .fromTo('.hero-copy', { opacity: 1, y: 0, scale: 1 }, { opacity: 0, y: -90, scale: 1.04, ease: 'none', duration: 0.45 }, 0.04)
+            .fromTo('.scrollcue', { opacity: 1 }, { opacity: 0, duration: 0.08 }, 0)
+            .fromTo('.hero-door', { opacity: 1 }, { opacity: 0, duration: 0.3 }, 0.3);
         }
         html.classList.remove('motion-pending');
-        gsap.from('.hero-copy', { opacity: 0, y: 30, duration: 2.4, ease: 'power3.out', delay: 0.3 });
-        gsap.from('.scrollcue', { opacity: 0, duration: 2, delay: 1.6 });
+        gsap.from('.hero-copy > *', { opacity: 0, y: 30, duration: 2.4, ease: 'power3.out', delay: 0.3, stagger: 0.12 });
+        gsap.from('.scrollcue span', { opacity: 0, duration: 2, delay: 1.6 });
+
+        // "Ways I make": the two rows of words slide in opposite directions with scroll.
+        document.querySelectorAll('.tool-row').forEach((row) => {
+          const dir = Number(row.dataset.dir) || 1;
+          gsap.fromTo(
+            row.querySelector('.tool-run'),
+            { xPercent: dir > 0 ? -30 : 0 },
+            {
+              xPercent: dir > 0 ? 0 : -30,
+              ease: 'none',
+              scrollTrigger: { trigger: '.tools', start: 'top bottom', end: 'bottom top', scrub: 0.8 },
+            }
+          );
+        });
 
         document.querySelectorAll('.why .line').forEach((l) =>
           gsap.fromTo(l, { opacity: 0.12 }, { opacity: 1, ease: 'none', scrollTrigger: { trigger: l, start: 'top 82%', end: 'top 48%', scrub: true } })
         );
-
-        const flow = document.querySelector('#flow');
-        if (flow) {
-          gsap.to('#flowFill', {
-            height: () => flow.offsetHeight - 40,
-            ease: 'none',
-            scrollTrigger: { trigger: flow, start: 'top 60%', end: 'bottom 60%', scrub: true, invalidateOnRefresh: true },
-          });
-          flow.querySelectorAll('.step').forEach((s) =>
-            ScrollTrigger.create({
-              trigger: s,
-              start: 'top 62%',
-              onEnter: () => s.classList.add('on'),
-              onLeaveBack: () => s.classList.remove('on'),
-            })
-          );
-        }
       });
     } else {
       html.classList.remove('motion-pending');
-      document.querySelectorAll('.step').forEach((s) => s.classList.add('on'));
     }
 
     // Arriving with a hash (e.g. "/#about", or "/#art-slug" when closing an artwork page).
